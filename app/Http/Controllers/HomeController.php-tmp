@@ -1,0 +1,67 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\emp_model;
+use Illuminate\Http\Request;
+
+class HomeController extends Controller {
+	/**
+	 * Create a new controller instance.
+	 *
+	 * @return void
+	 */
+	public function __construct() {
+		$this->middleware('auth');
+	}
+
+	/**
+	 * Show the application dashboard.
+	 *
+	 * @return \Illuminate\Http\Response
+	 */
+	public function index() {
+		return view('emp.create');
+	}
+	public function store(Request $request) {
+		request()->validate([
+				'name'  => 'required',
+				'email' => 'required',
+			]);
+
+		emp_model::create($request->all());
+		return redirect()->route('home')
+		                 ->with('success', 'Details Added successfully.');
+
+	}
+	public function list() {
+		$employ = emp_model::latest()->paginate(5);
+
+		return view('emp.index', compact('employ'))
+		->with('i', (request()->input('page', 1)-1)*5);
+	}
+	public function destroy($id) {
+		$employeeremove = emp_model::find($id);
+		$employeeremove->delete();
+		return redirect()->route('formlist')
+		                 ->with('success', 'Deleted successfully');
+	}
+	public function show($id) {
+		return view('emp.show', ['user' => emp_model::find($id)]);
+	}
+	public function edit($id) {
+		$getdetails = emp_model::find($id);
+		return view('emp.edit', compact('getdetails'));
+	}
+	public function update(Request $request, $id) {
+		request()->validate([
+				'name'  => 'required',
+				'email' => 'required',
+			]);
+		$data = emp_model::find($id);
+		$data->update($request->all());
+		return redirect()->route('formlist')
+		                 ->with('success', 'Updated successfully');
+	}
+
+}
